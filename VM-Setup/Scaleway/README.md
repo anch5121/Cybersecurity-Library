@@ -33,3 +33,35 @@ Keep this Terminal open while using the desktop. A successful tunnel remains run
 3. At the xRDP login, select **Xorg**, then enter `ubuntu` and the password created in step 1. Stop and inspect any unexpected certificate or identity warning.
 
 Windows App now displays the **physical Ubuntu host**. Do not open public RDP port 3389. Before running any sample, separately verify nested virtualization and the Windows 7 VM's lack of internet access.
+
+----
+----
+----
+
+# em-lab2: reconnect to the Ubuntu desktop
+
+This is for the existing Scaleway server with Xfce, xRDP, and VirtualBox already installed.
+
+1. **Start:** In Scaleway, open **Bare Metal > Elastic Metal > em-lab2**. If **Stopped**, choose **Power on**. If **Ready**, try SSH. After a reboot, allow several minutes for Ubuntu to boot.
+2. **SSH from the Mac:** Copy the SSH command under the server's **Access** section. It should use `ubuntu@SERVER_PUBLIC_IP`, not the Dell console IP.
+3. **Check RDP in the Ubuntu SSH session:**
+
+   ```bash
+   sudo ss -ltnp | grep ':3389' || echo 'No RDP listener'
+   ```
+
+   It must show **127.0.0.1:3389** as the listening address. If there is no listener, run `sudo systemctl start xrdp-sesman xrdp` and check again. If it listens on a public address, run `sudo systemctl stop xrdp` and fix the configuration before connecting.
+4. **Open a second Terminal tab on the Mac** (the `zsh` prompt, not `ubuntu@em-lab2`). Replace the IP with the current public IP shown by Scaleway:
+
+   ```bash
+   ssh -N -T -o ExitOnForwardFailure=yes -L 127.0.0.1:3390:127.0.0.1:3389 ubuntu@SERVER_PUBLIC_IP
+   ```
+
+   Leave this tab open. A successful tunnel normally prints nothing. Do not copy your Mac's private SSH key to the server.
+5. **Open Windows App:** Connect to the saved device **127.0.0.1:3390**. Log in as `ubuntu` with its desktop password. Keep folder and clipboard redirection off.
+
+**When finished:** Shut down any running VMs safely, then run `sudo shutdown -h now` on Ubuntu. Once the OS has halted, use Scaleway's **Power off** control. Next time, use **Power on**. Scaleway continues billing the allocated Elastic Metal server while it is powered off.
+
+**If SSH times out while Scaleway says Ready:** Confirm the public IP and give Ubuntu several minutes after boot. If it remains unreachable, use **Reboot > Normal reboot** once, then check again. Do not choose **Reinstall** or **Rescue mode** as a routine startup step.
+
+**Lab boundary:** This reconnects to the physical Ubuntu host. The course appliance and its Windows analysis VM still require import and network isolation checks before any malware is run.
