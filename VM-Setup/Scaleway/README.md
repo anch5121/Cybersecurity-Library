@@ -36,7 +36,6 @@ Windows App now displays the **physical Ubuntu host**. Do not open public RDP po
 
 ----
 ----
-----
 
 # em-lab2: reconnect to the Ubuntu desktop
 
