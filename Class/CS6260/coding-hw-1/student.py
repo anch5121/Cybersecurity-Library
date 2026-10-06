@@ -64,7 +64,7 @@ def main(message: bytes, injection: bytes) -> Tuple[bytes, str]:
 
         secret_len += 1
 
-        if secret_len -- 1000:
+        if secret_len >= 1000:
             end_flag = True 
     
     # forged_tag = crypto.Sha1.sha1( injection, initial_state=state, extra_length=128)
