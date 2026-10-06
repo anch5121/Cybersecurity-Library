@@ -42,16 +42,34 @@ def main(message: bytes, injection: bytes) -> Tuple[bytes, str]:
     E = int(tag[32:40], 16)
     state = [ A, B, C, D, E ] 
 
-    padding = crypto.Sha1.create_padding(
-        message,
-        extra_length = 64
-    )
+    secret_len = 0
+    end_flag = False 
 
-    forged_message = message + padding + injection
+    while not end_flag:
+
+        padding = crypto.Sha1.create_padding(
+            message,
+            extra_length = secret_len
+        )
+
+        forged_message = message + padding + injection
+
+        previous_len = ( secret_len + len(message) + len(padding))
+        forged_tag = crypto.Sha1.sha1(
+            injection, initial_state=state, extra_length=previous_len
+        )
+
+        if oracle.verify(forged_message, forged_tag):
+            return forged_message, forged_tag
+
+        secret_len += 1
+
+        if secret_len -- 1000:
+            end_flag = True 
     
-    forged_tag = crypto.Sha1.sha1( injection, initial_state=state, extra_length=128)
+    # forged_tag = crypto.Sha1.sha1( injection, initial_state=state, extra_length=128)
     
-    return forged_message, forged_tag
+    # return forged_message, forged_tag
     
     # print(f"Forging message that includes {injection} within {message}")
 
