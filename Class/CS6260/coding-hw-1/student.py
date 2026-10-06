@@ -34,32 +34,50 @@ def main(message: bytes, injection: bytes) -> Tuple[bytes, str]:
     #
     # YOU CAN COMFORTABLY DELETE ALL OF THE BELOW CODE.
     #
-
-    print(f"Forging message that includes {injection} within {message}")
-
-    # you can...
-
-    # combine bytes together,
-    forgery = message + injection
-
-    # make queries to the oracle,
     tag = oracle.query(message)
+    A = int(tag[0:8], 16)
+    B = int(tag[8:16], 16)
+    C = int(tag[16:24], 16)
+    D = int(tag[24:32], 16)
+    E = int(tag[32:40], 16)
+    state = [ A, B, C, D, E ] 
 
-    # craft new message/tag based on those queries,
-    hasher = crypto.Sha1()
-    hasher.update(b"hello, world!")
-    new_tag = hasher.hexdigest()
-    hasher.clear()
+    padding = crypto.Sha1.create_padding(
+        message,
+        extra_length = 64
+    )
 
-    # use sha1 internals directly, e.g.
-    #  - hasher.sha1()
-    #  - hasher.pad_message()
-    #  - hasher.create_padding()
-    manual_tag = hasher.sha1(b"hello, world!",
-                             extra_length=0, initial_state=None)
-    assert new_tag == manual_tag
+    forged_message = message + padding + injection
+    
+    forged_tag = crypto.Sha1.sha1( injection, initial_state=state, extra_length=128)
+    
+    return forged_message, forged_tag
+    
+    # print(f"Forging message that includes {injection} within {message}")
 
-    # or check the validity of novel tags.
-    assert oracle.verify(message, tag)
+    # # you can...
 
-    return b"", ""
+    # # combine bytes together,
+    # forgery = message + injection
+
+    # # make queries to the oracle,
+    # tag = oracle.query(message)
+
+    # # craft new message/tag based on those queries,
+    # hasher = crypto.Sha1()
+    # hasher.update(b"hello, world!")
+    # new_tag = hasher.hexdigest()
+    # hasher.clear()
+
+    # # use sha1 internals directly, e.g.
+    # #  - hasher.sha1()
+    # #  - hasher.pad_message()
+    # #  - hasher.create_padding()
+    # manual_tag = hasher.sha1(b"hello, world!",
+    #                          extra_length=0, initial_state=None)
+    # assert new_tag == manual_tag
+
+    # # or check the validity of novel tags.
+    # assert oracle.verify(message, tag)
+
+    # return b"", ""
